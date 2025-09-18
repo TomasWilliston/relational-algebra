@@ -1,185 +1,136 @@
 #include "table.hpp"
 
-Table::Table() {
-    // Optionally initialize members here
-}
-
-Table::Table(std::string names, std::string name) {
-}
-
-
-void 
-Table::set_names(std::string names) {
-    names = remove_spaces(names);
+Table::Table(std::string table_name, std::string titles) {
+    name = table_name;
+    std::string unspaced = remove_spaces(titles);
     std::string delimiter = ",";
-    while(names.find(delimiter) != std::string::npos) {
-        column_names.push_front(names.substr(0, names.find(delimiter))); 
-        names = names.substr(names.find(delimiter)+1, names.length()); 
+    int columns = 0;
+    while(unspaced.find(delimiter) != std::string::npos) {
+        unspaced = unspaced.substr(unspaced.find(delimiter)+1, unspaced.length()); 
+        columns++;
     }
-    column_names.push_front(names);
+    columns++;
+    array = new std::string[columns];
+    cols = columns;
+    rows = 1;
+
+    unspaced = remove_spaces(titles);
+    int i = 0;
+    while(unspaced.find(delimiter) != std::string::npos) {
+        array[i] = unspaced.substr(0, unspaced.find(delimiter));
+        unspaced = unspaced.substr(unspaced.find(delimiter)+1, unspaced.length());
+        i++;
+    }
+    array[i] = unspaced;
 }
 
-void
-Table::set_names(std::list<std::string> list) {
-    column_names = list;
+Table::Table(int cols, int rows) {
+    array = new std::string[cols * rows];
 }
 
-void
-Table::set_name(std::string n) {
-    name = n;
-
-}
-
-bool 
-Table::add_row(std::string& input) {
-    std::list<std::string> entry_list;
-    input = remove_spaces(input);
+bool Table::add_row(std::string& input) { 
+    std::string* input_array = new std::string[cols];
+    std::string unspaced = remove_spaces(input);
+    int i = 0;
     std::string delimiter = ",";
-    while(input.find(delimiter) != std::string::npos) {
-        entry_list.push_front(input.substr(0, input.find(delimiter))); 
-        input = input.substr(input.find(delimiter)+1, input.length()); 
+    while(unspaced.find(delimiter) != std::string::npos && i < cols) {
+        input_array[i] = unspaced.substr(0, unspaced.find(delimiter));
+        unspaced = unspaced.substr(unspaced.find(delimiter)+1, unspaced.length());
+        i++;
     }
-    entry_list.push_front(input);
-    if(entry_list.size() != column_names.size()) {
-        std::cout << "Error: Number of entries does not match number of columns." << std::endl;
+    if(i != cols-1) {
+        //not right length
         return false;
     }
-    while(entry_list.size() > 0) {
-        std::string entry = entry_list.back();
-        entry_list.pop_back();
-        if(columns.size() < column_names.size()) {
-            std::list<std::string> new_column;
-            new_column.push_front(entry);
-            columns.push_front(new_column);
-        } else {
-            columns.back().push_front(entry);
-            columns.push_front(columns.back());
-            columns.pop_back();
+    input_array[i] = unspaced;
+
+    rows++;
+    std::string* new_array = new std::string[cols * rows];
+
+    for (int i = 0; i < rows-1; i++) {
+        for (int j = 0; j < cols; j++) {
+            *(new_array + i * cols + j) = 
+            *(array + i * cols + j);
         }
     }
-
-}
-
-bool
-Table::add_column(std::string& entries, std::string& column_name) {
-}
-
-Table Table::selection(std::string& requirements) {
-
-    Table result;
-    result.set_name(name);
-    result.set_names(column_names);
-
-    std::cout << "Test" << std::endl;
-    requirements = remove_spaces(requirements);
-    std::string delimiter = "=";
-    std::string category = requirements.substr(0, requirements.find(delimiter));
-    std::string value = requirements.substr(requirements.find(delimiter)+1, requirements.length());
-    std::cout << column_names.size() << std::endl;
-    int limit = column_names.size();
-    for (size_t i = 0; i < limit; i++) {
-        std::cout << "Test2" << std::endl;
-        if(column_names.back() == (category)) {
-            std::cout << "Test3" << std::endl;
-            // Found the right column
-            std::list<std::string> column = columns.back();
-            for (size_t j = 0; j < column.size(); j++)
-            {
-                if(column.back() == value) {
-                    std::cout << "Found matching entry: " << column.back() << std::endl;
-                    //add to result
-                    //fix here
-                    // Found a matching entry
-                } else {
-                    std::cout << column.back() +" != "+ value << std::endl;
-                }
-                column.push_front(column.back());
-                column.pop_back();
-            }
-        }  else {
-                    std::cout << column_names.back() +" != "+ category << std::endl;
-                }
-            std::cout << "Test3" << std::endl;
-        column_names.push_front(column_names.back());
-        column_names.pop_back();
-        columns.push_front(columns.back());
-        columns.pop_back();
+    for (int i = 0; i < cols; i++) {
+        *(new_array + (rows-1) * cols + i) = input_array[i];
     }
-    return result;
+
+    array = new_array;
+
+    return true;
 }
 
-Table Table::projection(std::string& requirements) {
-    Table result;
-    result.set_name(name);
-    requirements = remove_spaces(requirements);
+bool Table::add_column(std::string& input) { 
+    std::string* input_array = new std::string[cols];
+    std::string unspaced = remove_spaces(input);
+    int i = 0;
     std::string delimiter = ",";
-    while(input.find(delimiter) != std::string::npos) {
-        entry_list.push_front(input.substr(0, input.find(delimiter))); 
-        input = input.substr(input.find(delimiter)+1, input.length()); 
+    while(unspaced.find(delimiter) != std::string::npos && i < rows) {
+        input_array[i] = unspaced.substr(0, unspaced.find(delimiter));
+        unspaced = unspaced.substr(unspaced.find(delimiter)+1, unspaced.length());
+        i++;
     }
+    if(i != rows-1) {
+        //not right length
+        return false;
+    }
+    input_array[i] = unspaced;
+
+    cols++;
+    std::string* new_array = new std::string[cols * rows];
+    
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols-1; j++) {
+            *(new_array + i * cols + j) = 
+            *(array + i * cols + j-i);
+        }
+    }
+    for (int i = 0; i < rows; i++) {
+        *(new_array + i * cols + cols-1) = input_array[i];
+    }
+
+    array = new_array;
+
+    return true; 
 }
 
-Table Table::join(Table& input, std::string& requirements) {
+Table Table::selection(std::string& requirements) { return Table(0, 0); }
 
-}
+Table Table::projection(std::string& requirements) { return Table(0, 0); }
 
-Table Table::intersection(Table& input) {
+Table Table::join(Table& input, std::string& requirements) { return Table(0, 0); }
 
-}
+Table Table::intersection(Table& input) { return Table(0, 0); }
 
-Table Table::table_union(Table& input) {
+Table Table::table_union(Table& input) { return Table(0, 0); }
 
-}
+Table Table::subtract(Table& input) { return Table(0, 0); }
 
-Table Table::subtract(Table& input) {
-
-}
-
-void
-Table::print_table() {
-    //print name and opening bracket
-    std::cout << name + " = {";
-    // Print column names from back to front
-    for (size_t i = 0; i < column_names.size(); i++)
+void Table::print_table() {
+    std::cout << name + "(";
+    for (size_t i = 0; i < cols - 1; i++)
     {
-        std::cout << column_names.back();
-        column_names.push_front(column_names.back());
-        column_names.pop_back();
-        if(i != column_names.size()-1) {
-            std::cout << ", ";
-        }
+            std::cout << *(array  + i)
+                 << ", ";
     }
-    std::cout << std::endl;
+    std::cout << *(array  + cols -1) << ") = {" << std::endl;
+    
 
-    // Print rows
-    for (size_t j = 0; j < columns.back().size(); j++)
-    {   
-        for (size_t i = 0; i < columns.size(); i++)
-        {
-            std::list<std::string> column = columns.back();
-                std::cout << column.back();
-                column.push_front(column.back());
-                column.pop_back();
-            columns.push_front(column);
-            columns.pop_back();
-            if(i != columns.size()-1) {
-            std::cout << ",";
-            } else {
-                std::cout << std::endl;
-            }
+    for (int i = 1; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            std::cout << *(array + i * cols + j) + ", ";
         }
+        std::cout << std::endl;
     }
 
     std::cout << "}" << std::endl;
 }
 
-std::string 
-Table::get_name() {
+std::string Table::get_name() { return ""; }
 
-}
-
-std::string 
-Table::remove_spaces(std::string input) {
+std::string Table::remove_spaces(std::string input) {
     std::string str;
     for (size_t i = 0; i < input.length(); i++)
     {

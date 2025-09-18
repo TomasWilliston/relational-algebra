@@ -10,13 +10,15 @@ class Table {
 
     Table();
 
-    Table(std::string names, std::string name);
+    Table(std::string name, std::string titles);
+
+    Table(int cols, int rows);
 
     bool
     add_row(std::string& input);
 
     bool
-    add_column(std::string& entries, std::string& column_name);
+    add_column(std::string& entries);
 
     Table
     selection(std::string& requirements);
@@ -36,15 +38,6 @@ class Table {
     Table 
     subtract(Table& input);
 
-    void 
-    set_names(std::string names);
-
-    void
-    set_names(std::list<std::string> list);
-
-    void
-    set_name(std::string name);
-
     void
     print_table();
 
@@ -55,9 +48,11 @@ class Table {
 
     std::string name;
 
-    std::list<std::string> column_names;
+    int cols;
 
-    std::list<std::list<std::string>> columns;
+    int rows;
+
+    std::string* array;
 };
 
 #endif
